@@ -8,8 +8,10 @@ This is an application in which the user has three shelves, which are arranged t
 
 ## Installation
 
-Clone or download this repository. Install dependencies with <b>yarn install</b> or <b>npm install</b>. 
-Start the application with <b>yarn start</b> and it can be accessed on http://localhost/3000
+1. Clone or download this repository. 
+   git clone https://github.com/wwardha/react-nanodegree-myreads.git
+2. Install dependencies with <b>yarn install</b>. 
+3. Start the application with <b>yarn start</b> and it can be accessed on http://localhost/3000
 
 ## Technologies
 
