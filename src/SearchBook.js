@@ -13,6 +13,7 @@ class SearchBook extends React.Component {
     state = 
     {
         query: '',
+        queryLength: 0,
         searchBooks: [],
         libraryBooks: [],
         bookIds: []
@@ -46,17 +47,22 @@ class SearchBook extends React.Component {
         return bookIds;
     }
 
-    handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            let paramQuery = e.target.value.trim()
+    handleOnChange = (e) => {
+        let paramQuery = e.target.value.trim()
 
-            BooksAPI.search(paramQuery, 500).then((result) => {
-                if (!result.error) {
+        if (paramQuery !== '') {
+            BooksAPI.search(paramQuery, 500).then((result) => {      
+                if (result !== undefined && !result.error) {
                     let searchBookIds = []
                     for (var i = 0; i < result.length; i++) {
                         let book = result[i]
                         book['shelf'] = 'none'
                         searchBookIds.push(book.id)
+    
+                        if (book.imageLinks === undefined) {
+                            let imageLinks = {smallThumbnail: '', thumbnail: ''}
+                            book['imageLinks'] = imageLinks
+                        }                      
                     }
                     
                     let searchBooks = result.filter((book) => {
@@ -64,13 +70,19 @@ class SearchBook extends React.Component {
                         }).concat(this.state.libraryBooks.filter((book) => {
                             return searchBookIds.indexOf(book.id) !== -1;
                         }))
-
+    
                     searchBooks.sort(sortBy('title'))
-                    this.setState({ query: paramQuery, searchBooks: searchBooks })    
+                    let paramQueryLength = paramQuery.length
+                    this.setState({ query: paramQuery, queryLength: paramQueryLength, searchBooks: searchBooks })    
                 }
-                else
-                    this.setState({ query: paramQuery, searchBooks: result })    
-            });
+                else {
+                    let paramQueryLength = paramQuery.length
+                    this.setState({ query: paramQuery, queryLength: paramQueryLength, searchBooks: (result === undefined) ? [] : result })    
+                }
+            })   
+        }
+        else {
+            this.setState({ query: '', queryLength: 0, searchBooks: []})
         }
     }
 
@@ -100,19 +112,20 @@ class SearchBook extends React.Component {
     }
 
     render() {
+        console.log(this.state.query)
         let books = this.state.searchBooks
-        
+
         return (
             <div className="search-books">
                 <div className="search-books-bar">
                     <Link to='/' className="close-search">Close</Link>
                     <div className="search-books-input-wrapper">
-                        <input type="text" placeholder="Search by title or author" onKeyPress={this.handleKeyPress}/>              
+                        <input type="text" placeholder="Search by title or author" onChange={this.handleOnChange}/>              
                     </div>
                 </div>
                 <div className="search-books-results">
                     <ol className="books-grid">
-                        {!books.error &&
+                        {!books.error && this.state.queryLength > 2 &&
                             books.map((book) => (
                             <li key={book.id} >
                             <div className="book">
