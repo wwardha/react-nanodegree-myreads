@@ -13,7 +13,7 @@ class SearchBook extends React.Component {
     state = 
     {
         query: '',
-        queryLength: 0,
+        onDelete: false,
         searchBooks: [],
         libraryBooks: [],
         bookIds: []
@@ -34,7 +34,6 @@ class SearchBook extends React.Component {
                 this.setState({libraryBooks: result, bookIds: bookIds})            
             })    
         }
-
     }
 
     buildIds = (books) => {
@@ -50,7 +49,7 @@ class SearchBook extends React.Component {
     handleOnChange = (e) => {
         let paramQuery = e.target.value.trim()
 
-        if (paramQuery !== '') {
+        if (paramQuery !== '' && !this.state.onDelete) {
             BooksAPI.search(paramQuery, 500).then((result) => {      
                 if (result !== undefined && !result.error) {
                     let searchBookIds = []
@@ -72,17 +71,24 @@ class SearchBook extends React.Component {
                         }))
     
                     searchBooks.sort(sortBy('title'))
-                    let paramQueryLength = paramQuery.length
-                    this.setState({ query: paramQuery, queryLength: paramQueryLength, searchBooks: searchBooks })    
+                    this.setState({ query: paramQuery, searchBooks: searchBooks })    
                 }
                 else {
-                    let paramQueryLength = paramQuery.length
-                    this.setState({ query: paramQuery, queryLength: paramQueryLength, searchBooks: (result === undefined) ? [] : result })    
+                    this.setState({ query: paramQuery, searchBooks: (result === undefined) ? [] : result })    
                 }
             })   
         }
         else {
-            this.setState({ query: '', queryLength: 0, searchBooks: []})
+            this.setState({ query: '', searchBooks: []})
+        }
+    }
+
+    handleOnKeyDown = (e) => {
+        if (e.keyCode === 8) {
+            this.setState({ query: '', onDelete: true, searchBooks: []})
+        }
+        else {
+            this.setState({ onDelete: false })
         }
     }
 
@@ -112,7 +118,7 @@ class SearchBook extends React.Component {
     }
 
     render() {
-        console.log(this.state.query)
+
         let books = this.state.searchBooks
 
         return (
@@ -120,12 +126,12 @@ class SearchBook extends React.Component {
                 <div className="search-books-bar">
                     <Link to='/' className="close-search">Close</Link>
                     <div className="search-books-input-wrapper">
-                        <input type="text" placeholder="Search by title or author" onChange={this.handleOnChange}/>              
+                        <input type="text" placeholder="Search by title or author" onKeyDown={this.handleOnKeyDown} onChange={this.handleOnChange}/>              
                     </div>
                 </div>
                 <div className="search-books-results">
                     <ol className="books-grid">
-                        {!books.error && this.state.queryLength > 2 &&
+                        {!books.error &&
                             books.map((book) => (
                             <li key={book.id} >
                             <div className="book">
